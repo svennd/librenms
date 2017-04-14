@@ -106,9 +106,8 @@ if ($bill_data['bill_type'] == 'cdr') {
         ?>
             <div class="list-group">
         <?php   foreach ($ports as $port) {
-            $port = cleanPort($port);
                     $emptyCheck = true;
-                    $portalias  = (empty($port['ifAlias']) ? '' : ' - '.$port['ifAlias'].'');
+                    $portalias  = (empty($port['ifAlias']) ? '' : ' - '.display($port['ifAlias']).'');
 
         ?>
                 <div class="list-group-item">

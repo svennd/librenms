@@ -160,7 +160,6 @@ foreach (dbFetchRows("SELECT * FROM `bgpPeers` WHERE `device_id` = ? $extra_sql 
         unset($peerhost);
     }
 
-    $peerhost = cleanPort($peerhost);
     if (is_array($peerhost)) {
         // $peername = generate_device_link($peerhost);
         $peername = generate_device_link($peerhost).' '.generate_port_link($peerhost);

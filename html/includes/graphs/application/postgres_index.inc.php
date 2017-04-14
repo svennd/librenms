@@ -12,13 +12,7 @@ $printtotal    = 0;
 $addarea       = 1;
 $transparency  = 15;
 
-if (isset($vars['database'])) {
-    $rrd_name_array=array('app', $name, $app_id, $vars['database']);
-} else {
-    $rrd_name_array=array('app', $name, $app_id);
-}
-
-$rrd_filename = rrd_name($device['hostname'], $rrd_name_array);
+$rrd_filename = rrd_name($device['hostname'], array('app', $name, $app_id));
 
 if (is_file($rrd_filename)) {
     $rrd_list = array(

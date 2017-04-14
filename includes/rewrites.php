@@ -56,21 +56,17 @@ function rewrite_entity_descr($descr)
 }
 
 
-/**
- * Clean port values for html display
- * Add label to the port array (usually one of ifAlias, ifName, ifDescr)
- *
- * @param array $interface
- * @param null|array $device
- * @return mixed
- */
-function cleanPort($interface, $device = null)
+function ifNameDescr($interface, $device = null)
+{
+    return ifLabel($interface, $device);
+}
+
+
+function ifLabel($interface, $device = null)
 {
     global $config;
 
     $interface['ifAlias'] = display($interface['ifAlias']);
-    $interface['ifName']  = display($interface['ifName']);
-    $interface['ifDescr'] = display($interface['ifDescr']);
 
     if (!$device) {
         $device = device_by_id_cache($interface['device_id']);

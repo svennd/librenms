@@ -29,20 +29,11 @@ $dbuser = @$_POST['dbuser'] ?: 'librenms';
 $dbpass = @$_POST['dbpass'] ?: '';
 $dbname = @$_POST['dbname'] ?: 'librenms';
 $dbport = @$_POST['dbport'] ?: 3306;
-$dbsocket = @$_POST['dbsocket'] ?: '';
 $config['db_host']=$dbhost;
 $config['db_user']=$dbuser;
 $config['db_pass']=$dbpass;
 $config['db_name']=$dbname;
 $config['db_port']=$dbport;
-$config['db_socket']=$dbsocket;
-
-if (!empty($config['db_socket'])) {
-    $config['db_host'] = '';
-    $config['db_port'] = null;
-} else {
-    $config['db_socket'] = null;
-}
 
 $add_user = @$_POST['add_user'] ?: '';
 $add_pass = @$_POST['add_pass'] ?: '';
@@ -51,15 +42,18 @@ $add_email = @$_POST['add_email'] ?: '';
 
 // Check we can connect to MySQL DB, if not, back to stage 1 :)
 if ($stage > 1) {
-    try {
-        dbConnect();
-        if ($stage == 2 && $_SESSION['build-ok'] == true) {
-            $stage = 3;
-            $msg = "It appears that the database is already setup so have moved onto stage $stage";
-        }
-    } catch (\LibreNMS\Exceptions\DatabaseConnectException $e) {
+    $database_link = mysqli_connect('p:'.$dbhost, $dbuser, $dbpass, $dbname, $dbport);
+    dbQuery("SET NAMES 'utf8'");
+    dbQuery("SET CHARACTER SET 'utf8'");
+    dbQuery("SET COLLATION_CONNECTION = 'utf8_unicode_ci'");
+    if (mysqli_connect_error()) {
         $stage = 1;
-        $msg = "Couldn't connect to the database, please check your details<br /> " . $e->getMessage();
+        $msg = "Couldn't connect to the database, please check your details<br /> " . mysqli_connect_error();
+    } elseif ($stage == 2) {
+        if ($_SESSION['build-ok'] == true) {
+                    $stage = 3;
+                    $msg = "It appears that the database is already setup so have moved onto stage $stage";
+        }
     }
     $_SESSION['stage'] = $stage;
 }
@@ -261,19 +255,13 @@ if ($ext_loaded == 'no') {
           <div class="form-group">
             <label for="dbhost" class="col-sm-4" control-label">DB Host: </label>
             <div class="col-sm-8">
-              <input type="text" class="form-control" name="dbhost" id="dbhost" value="<?php echo $dbhost; ?>" placeholder="Leave empty if using Unix-Socket">
+              <input type="text" class="form-control" name="dbhost" id="dbhost" value="<?php echo $dbhost; ?>">
             </div>
           </div>
           <div class="form-group">
             <label for="dbport" class="col-sm-4" control-label">DB Port: </label>
             <div class="col-sm-8">
-              <input type="text" class="form-control" name="dbport" id="dbport" value="<?php echo $dbport; ?>" placeholder="Leave empty if using Unix-Socket">
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="dbsocket" class="col-sm-4" control-label">DB Unix-Socket: </label>
-            <div class="col-sm-8">
-              <input type="text" class="form-control" name="dbsocket" id="dbsocket" value="<?php echo $dbsocket; ?>" placeholder="Leave empty if using Host">
+              <input type="text" class="form-control" name="dbport" id="dbport" value="<?php echo $dbport; ?>">
             </div>
           </div>
           <div class="form-group">
@@ -316,7 +304,6 @@ if ($ext_loaded == 'no') {
     $config['db_pass'] = $dbpass;
     $config['db_name'] = $dbname;
     $config['db_port'] = $dbport;
-    $config['db_socket'] = $dbsocket;
     $sql_file = '../build.sql';
     $_SESSION['last'] = time();
     ob_end_flush();
@@ -348,7 +335,6 @@ if ($_SESSION['offset'] < 100 && $_REQUEST['offset'] < 94) {
           <input type="hidden" name="dbpass" value="<?php echo $dbpass; ?>">
           <input type="hidden" name="dbname" value="<?php echo $dbname; ?>">
           <input type="hidden" name="dbport" value="<?php echo $dbport; ?>">
-          <input type="hidden" name="dbsocket" value="<?php echo $dbsocket; ?>">
           <button type="submit" class="btn btn-success">Goto Add User</button>
         </form>
       </div>
@@ -374,7 +360,6 @@ $config_file = <<<"EOD"
 \$config\['db_user'\] = '$dbuser';
 \$config\['db_pass'\] = '$dbpass';
 \$config\['db_name'\] = '$dbname';
-\$config\['db_socket'\] = '$dbsocket';
 \$config\['db'\]\['extension'\] = "mysqli";// mysql or mysqli
 
 // This is the user LibreNMS will run as
@@ -436,7 +421,6 @@ if (!file_exists("../config.php")) {
           <input type="hidden" name="dbuser" value="<?php echo $dbuser; ?>">
           <input type="hidden" name="dbpass" value="<?php echo $dbpass; ?>">
           <input type="hidden" name="dbname" value="<?php echo $dbname; ?>">
-          <input type="hidden" name="dbsocket" value="<?php echo $dbsocket; ?>">
         <button type="submit" class="btn btn-success">Finish install</button>
       </form>
 <?php
@@ -459,7 +443,6 @@ if (!file_exists("../config.php")) {
           <input type="hidden" name="dbuser" value="<?php echo $dbuser; ?>">
           <input type="hidden" name="dbpass" value="<?php echo $dbpass; ?>">
           <input type="hidden" name="dbname" value="<?php echo $dbname; ?>">
-          <input type="hidden" name="dbsocket" value="<?php echo $dbsocket; ?>">
           <div class="form-group">
             <label for="add_user" class="col-sm-4 control-label">Username</label>
             <div class="col-sm-8">
@@ -515,7 +498,6 @@ if (auth_usermanagement()) {
           <input type="hidden" name="dbuser" value="<?php echo $dbuser; ?>">
           <input type="hidden" name="dbpass" value="<?php echo $dbpass; ?>">
           <input type="hidden" name="dbname" value="<?php echo $dbname; ?>">
-          <input type="hidden" name="dbsocket" value="<?php echo $dbsocket; ?>">
           <button type="submit" class="btn btn-success" <?php if ($proceed == "1") {
                 echo "disabled='disabled'";
 } ?>>Generate Config</button>

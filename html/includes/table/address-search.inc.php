@@ -98,12 +98,12 @@ foreach (dbFetchRows($sql, $param) as $interface) {
     }
 
     if (port_permitted($interface['port_id'])) {
-        $interface  = cleanPort($interface, $interface);
+        $interface  = ifLabel($interface, $interface);
         $response[] = array(
             'hostname'    => generate_device_link($interface),
             'interface'   => generate_port_link($interface).' '.$error_img,
             'address'     => $address,
-            'description' => $interface['ifAlias'],
+            'description' => display($interface['ifAlias']),
         );
     }
 }//end foreach

@@ -153,7 +153,7 @@ $app->group(
                         $app->group(
                             '/ip',
                             function () use ($app) {
-                                $app->get('/arp/:ip', 'authToken', 'list_arp')->name('list_arp')->conditions(array('ip' => '[^?]+'));
+                                $app->get('/arp/:ip', 'authToken', 'list_arp')->name('list_arp');
                             }
                         );
                     }

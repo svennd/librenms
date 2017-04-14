@@ -118,14 +118,11 @@ if ($error_msg) {
     } elseif ($command_only) {
         echo "<div class='infobox'>";
         echo "<p style='font-size: 16px; font-weight: bold;'>RRDTool Command</p>";
-        echo "<pre class='rrd-pre'>";
         echo "rrdtool graph $graphfile $rrd_options";
-        echo "</pre>";
+        echo '</span>';
         $return = rrdtool_graph($graphfile, $rrd_options);
-        echo "<p style='font-size: 16px; font-weight: bold;'>RRDTool Output</p>";
-        echo "<pre class='rrd-pre'>";
-        echo "$return";
-        echo "</pre>";
+        echo '<br /><br />';
+        echo "<p style='font-size: 16px; font-weight: bold;'>RRDTool Output</p>$return";
         unlink($graphfile);
         echo '</div>';
     } else {

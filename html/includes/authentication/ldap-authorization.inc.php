@@ -110,7 +110,7 @@ function auth_usermanagement()
 }
 
 
-function adduser($username, $password, $level, $email = '', $realname = '', $can_modify_passwd = 1, $description = '')
+function adduser($username, $password, $level, $email = '', $realname = '', $can_modify_passwd = 1, $description = '', $twofactor = 0)
 {
     // Not supported
     return false;

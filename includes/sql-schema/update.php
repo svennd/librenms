@@ -21,24 +21,51 @@ if (!isset($debug)  && php_sapi_name() == 'cli') {
     require realpath(__DIR__ . '/../..') . '/includes/init.php';
 
     $options = getopt('d');
-    $debug = isset($options['d']);
+    if (isset($options['d'])) {
+        $debug = true;
+    } else {
+        $debug = false;
+    }
 }
 
-if (db_schema_is_current()) {
-    d_echo("DB Schema already up to date.\n");
+$insert = 0;
+
+if ($db_rev = @dbFetchCell('SELECT version FROM `dbSchema` ORDER BY version DESC LIMIT 1')) {
+} else {
+    $db_rev = 0;
+    $insert = 1;
+}
+
+$updating = 0;
+
+$include_dir_regexp = '/\.sql$/';
+
+if ($handle = opendir($config['install_dir'].'/sql-schema')) {
+    while (false !== ($file = readdir($handle))) {
+        if (filetype($config['install_dir'].'/sql-schema/'.$file) == 'file' && preg_match($include_dir_regexp, $file)) {
+            $filelist[] = $file;
+        }
+    }
+
+    closedir($handle);
+}
+
+asort($filelist);
+$tmp = explode('.', max($filelist), 2);
+if ($tmp[0] <= $db_rev) {
+    if ($debug) {
+        echo "DB Schema already up to date.\n";
+    }
     return;
 }
 
 // Set Database Character set and Collation
 dbQuery('ALTER DATABASE ? CHARACTER SET utf8 COLLATE utf8_unicode_ci;', array(array($config['db_name'])));
 
-$db_rev = get_db_schema();
-$insert = ($db_rev == 0); // if $db_rev == 0, insert the first update
-
-$updating = 0;
 $limit = 150; //magic marker far enough in the future
-foreach (get_schema_list() as $file_rev => $file) {
-    if ($file_rev > $db_rev) {
+foreach ($filelist as $file) {
+    list($filename,$extension) = explode('.', $file, 2);
+    if ($filename > $db_rev) {
         if (isset($_SESSION['stage'])) {
             $limit++;
             if (time()-$_SESSION['last'] > 45) {
@@ -52,18 +79,27 @@ foreach (get_schema_list() as $file_rev => $file) {
             echo "-- Updating database schema\n";
         }
 
-        printf('%03d -> %03d ...', $db_rev, $file_rev);
+        echo sprintf('%03d', $db_rev).' -> '.sprintf('%03d', $filename).' ...';
 
         $err = 0;
-        if ($data = file_get_contents($file)) {
+
+        if ($fd = @fopen($config['install_dir'].'/sql-schema/'.$file, 'r')) {
+            $data = fread($fd, 4096);
+            while (!feof($fd)) {
+                $data .= fread($fd, 4096);
+            }
+
             foreach (explode("\n", $data) as $line) {
                 if (trim($line)) {
                     d_echo("$line \n");
 
                     if ($line[0] != '#') {
-                        if (!mysqli_query($database_link, $line)) {
+                        $update = mysqli_query($database_link, $line);
+                        if (!$update) {
                             $err++;
-                            d_echo(mysqli_error($database_link) . PHP_EOL);
+                            if ($debug) {
+                                echo mysqli_error($database_link)."\n";
+                            }
                         }
                     }
                 }
@@ -71,14 +107,14 @@ foreach (get_schema_list() as $file_rev => $file) {
 
             echo " done ($err errors).\n";
         } else {
-            echo " Could not open file! $file\n";
+            echo " Could not open file!\n";
         }//end if
 
         $updating++;
-        $db_rev = $file_rev;
+        $db_rev = $filename;
         if ($insert) {
             dbInsert(array('version' => $db_rev), 'dbSchema');
-            $insert = false;
+            $insert = 0;
         } else {
             dbUpdate(array('version' => $db_rev), 'dbSchema');
         }
