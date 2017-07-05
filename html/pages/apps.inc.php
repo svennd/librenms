@@ -201,7 +201,9 @@ $graphs['squid'] = array(
 );
 
 $graphs['opengridscheduler'] = array(
-    'ogs'
+    'pending',
+    'run',
+    'suspend',
 );
 
 $graphs['fbsd-nfs-server'] = array(

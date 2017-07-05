@@ -16,7 +16,7 @@
 require 'includes/graphs/common.inc.php';
 $scale_min     = 0;
 $colours       = 'mixed';
-$unit_text     = 'Jobs';
+$unit_text     = 'running jobs';
 $unitlen       = 15;
 $bigdescrlen   = 15;
 $smalldescrlen = 15;
@@ -27,10 +27,7 @@ $transparency  = 33;
 $rrd_filename  = rrd_name($device['hostname'], array('app', 'ogs', $app['app_id']));
 
 $array = array(
-    'running_jobs' => array('descr' => 'running'),
-    'pending_jobs' => array('descr' => 'pending'),
-    'suspend_jobs' => array('descr' => 'suspend'),
-//    'zombie_jobs' => array('descr' => 'zombie') // this is a bad naming, zombies in sge are cached finished jobs
+    'running_jobs' => array('descr' => 'running')
 );
 
 $i = 0;

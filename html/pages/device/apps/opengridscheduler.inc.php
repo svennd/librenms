@@ -16,7 +16,9 @@
 global $config;
 
 $graphs = array(
-    'opengridscheduler_ogs' => 'Open Grid Scheduler Job Queue',
+    'opengridscheduler_run' => 'Open Grid Scheduler Running Jobs',
+    'opengridscheduler_pending' => 'Open Grid Scheduler Pending Jobs',
+    'opengridscheduler_suspend' => 'Open Grid Scheduler Suspended Jobs',
 );
 
 foreach ($graphs as $key => $text) {
